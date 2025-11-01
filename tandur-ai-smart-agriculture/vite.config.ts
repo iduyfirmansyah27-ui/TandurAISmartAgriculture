@@ -10,6 +10,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  css: {
+    postcss: {
+      configFilePath: './postcss.config.cjs',
+    },
+  },
   server: {
     port: 3000,
     open: true,
