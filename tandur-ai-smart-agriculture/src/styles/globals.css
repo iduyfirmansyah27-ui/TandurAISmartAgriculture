@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme (default) */
+    --color-primary: 34 197 94;    /* #22c55e */
+    --color-primary-50: 240 253 244;
+    --color-primary-100: 220 252 231;
+    --color-primary-200: 187 247 208;
+    --color-primary-300: 134 239 172;
+    --color-primary-400: 74 222 128;
+    --color-primary-500: 34 197 94;
+    --color-primary-600: 22 163 74;
+    --color-primary-700: 21 128 61;
+    --color-primary-800: 22 101 52;
+    --color-primary-900: 20 83 45;
+    --color-primary-950: 5 46 22;
+    
+    --color-secondary: 139 90 43;  /* #8B5A2B */
+    --color-secondary-50: 249 245 240;
+    --color-secondary-100: 240 230 217;
+    --color-secondary-200: 224 204 179;
+    --color-secondary-300: 201 168 128;
+    --color-secondary-400: 179 138 92;
+    --color-secondary-500: 139 90 43;
+    --color-secondary-600: 122 78 38;
+    --color-secondary-700: 100 60 31;
+    --color-secondary-800: 83 50 29;
+    --color-secondary-900: 71 43 28;
+    --color-secondary-950: 60 20 12;
+    
+    --color-accent: 59 130 246;    /* #3b82f6 */
+    --color-highlight: 255 215 0;  /* #FFD700 */
+    
+    /* Neutral Colors */
+    --color-text: 31 41 55;        /* #1f2937 */
+    --color-text-light: 107 114 128; /* #6b7280 */
+    --color-bg: 249 250 251;       /* #f9fafb */
+    --color-bg-secondary: 255 255 255; /* #ffffff */
+    --color-border: 229 231 235;   /* #e5e7eb */
+    
+    /* Status Colors */
+    --color-success: 16 185 129;   /* #10b981 */
+    --color-warning: 245 158 11;   /* #f59e0b */
+    --color-error: 239 68 68;      /* #ef4444 */
+    --color-info: 59 130 246;      /* #3b82f6 */
+  }
+  
+  .dark {
+    --color-primary: 52 211 153;   /* #34d399 */
+    --color-primary-50: 236 253 245;
+    --color-primary-100: 209 250 229;
+    --color-primary-200: 167 243 208;
+    --color-primary-300: 110 231 183;
+    --color-primary-400: 52 211 153;
+    --color-primary-500: 16 185 129;
+    --color-primary-600: 5 150 105;
+    --color-primary-700: 4 120 87;
+    --color-primary-800: 6 95 70;
+    --color-primary-900: 6 78 59;
+    --color-primary-950: 2 44 34;
+    
+    --color-secondary: 212 167 106; /* #d4a76a */
+    --color-secondary-50: 253 248 240;
+    --color-secondary-100: 252 239 217;
+    --color-secondary-200: 248 220 179;
+    --color-secondary-300: 243 194 128;
+    --color-secondary-400: 237 164 77;
+    --color-secondary-500: 212 167 106;
+    --color-secondary-600: 192 138 74;
+    --color-secondary-700: 158 108 58;
+    --color-secondary-800: 131 87 50;
+    --color-secondary-900: 111 74 45;
+    --color-secondary-950: 60 38 23;
+    
+    --color-accent: 96 165 250;    /* #60a5fa */
+    --color-highlight: 250 204 21; /* #facc15 */
+    
+    /* Neutral Colors */
+    --color-text: 243 244 246;     /* #f3f4f6 */
+    --color-text-light: 156 163 175; /* #9ca3af */
+    --color-bg: 17 24 39;          /* #111827 */
+    --color-bg-secondary: 31 41 55; /* #1f2937 */
+    --color-border: 55 65 81;      /* #374151 */
+    
+    /* Status Colors */
+    --color-success: 16 185 129;   /* #10b981 */
+    --color-warning: 245 158 11;   /* #f59e0b */
+    --color-error: 239 68 68;      /* #ef4444 */
+    --color-info: 96 165 250;      /* #60a5fa */
+  }
+}
+
+/* Base styles */
+body {
+  @apply bg-bg text-text transition-colors duration-200;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+/* Custom utility classes */
+.bg-primary-gradient {
+  @apply bg-gradient-to-r from-primary-500 to-primary-700;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-primary-700;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+}
+
+/* Button focus styles */
+button:focus, a:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-primary-500 ring-offset-white dark:ring-offset-gray-900;
+}
+
+/* Form elements */
+input, textarea, select {
+  @apply w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200;
+}
+
+/* Custom checkbox and radio */
+input[type="checkbox"],
+input[type="radio"] {
+  @apply w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:checked:bg-primary-600 dark:focus:ring-primary-500;
+}
