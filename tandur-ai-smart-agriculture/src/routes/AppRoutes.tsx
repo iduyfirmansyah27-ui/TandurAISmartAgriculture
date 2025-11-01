@@ -1,16 +1,24 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
+import type { ComponentType } from 'react';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
+// Type for dynamic import function
+type LazyComponent = () => Promise<{ default: ComponentType<any> }>;
+
 // Lazy load pages with error boundary
-const lazyWithRetry = (componentImport: any) =>
+const lazyWithRetry = (componentImport: LazyComponent) =>
   lazy(async () => {
     try {
       return await componentImport();
     } catch (error) {
       console.error('Error loading component:', error);
-      // You can return a fallback component here if needed
-      throw error;
+      // Return a default component in case of error
+      return { default: () => (
+        <div className="p-4 text-red-600">
+          Error loading component. Please try again later.
+        </div>
+      )};
     }
   });
 
@@ -25,15 +33,16 @@ const NotFoundPage = lazyWithRetry(() => import('../pages/NotFoundPage'));
 // Import ProtectedRoute with dynamic import to avoid circular dependencies
 const ProtectedRoute = lazyWithRetry(() => import('../components/ProtectedRoute'));
 
+// Fallback component for Suspense
+const Fallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <LoadingSpinner size="lg" />
+  </div>
+);
+
 const AppRoutes = () => {
   return (
-    <Suspense 
-      fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <LoadingSpinner size="lg" />
-        </div>
-      }
-    >
+    <Suspense fallback={<Fallback />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -49,8 +58,8 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* 404 - Not Found */}
+        
+        {/* 404 route */}
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
