@@ -1,0 +1,67 @@
+{
+  "sensors": [
+    {
+      "id": 1,
+      "type": "temperature",
+      "value": 28.5,
+      "timestamp": "2025-11-01T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "type": "humidity",
+      "value": 65,
+      "timestamp": "2025-11-01T10:00:00Z"
+    },
+    {
+      "id": 3,
+      "type": "soil_moisture",
+      "value": 42,
+      "timestamp": "2025-11-01T10:00:00Z"
+    },
+    {
+      "id": 4,
+      "type": "light",
+      "value": 1250,
+      "timestamp": "2025-11-01T10:00:00Z"
+    },
+    {
+      "id": 5,
+      "type": "co2",
+      "value": 420,
+      "timestamp": "2025-11-01T10:00:00Z"
+    },
+    {
+      "id": 6,
+      "type": "ph",
+      "value": 6.5,
+      "timestamp": "2025-11-01T10:00:00Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "title": "Penyiraman Diperlukan",
+      "message": "Kelembaban tanah mencapai 42%. Disarankan untuk menyiram tanaman.",
+      "type": "warning",
+      "read": false,
+      "timestamp": "2025-11-01T09:30:00Z"
+    },
+    {
+      "id": 2,
+      "title": "Suhu Optimal",
+      "message": "Suhu saat ini 28.5°C, dalam kisaran optimal untuk tanaman.",
+      "type": "info",
+      "read": false,
+      "timestamp": "2025-11-01T10:00:00Z"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "Admin",
+      "email": "admin@example.com",
+      "password": "admin123",
+      "role": "admin"
+    }
+  ]
+}
