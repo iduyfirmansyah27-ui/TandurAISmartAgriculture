@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -9,12 +9,16 @@ export default {
     extend: {
       colors: {
         primary: {
-          500: '#3b82f6', // blue-500
-          600: '#2563eb', // blue-600
-          700: '#1d4ed8', // blue-700
+          500: '#10B981', // green-500
+          600: '#059669', // green-600
+          700: '#047857', // green-700
         },
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms')({
+      strategy: 'class',
+    }),
+  ],
 };
