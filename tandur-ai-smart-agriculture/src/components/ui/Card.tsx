@@ -1,10 +1,10 @@
 import { forwardRef } from 'react';
 
 // Define types for Card props
-type CardVariant = 'elevated' | 'outline' | 'filled';
-type CardSize = 'sm' | 'md' | 'lg';
+export type CardVariant = 'elevated' | 'outline' | 'filled';
+export type CardSize = 'sm' | 'md' | 'lg';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface BaseCardProps {
   /**
    * Variant of the card
    * @default 'elevated'
@@ -26,43 +26,17 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
    */
   isLoading?: boolean;
   /**
-   * Animation when card is hovered
-   * @default { scale: 1.02 }
-   */
-  hoverAnimation?: {
-    scale?: number;
-    y?: number;
-    rotate?: number;
-  };
-  /**
-   * Initial animation when card is mounted
-   * @default { opacity: 0, y: 20 }
-   */
-  initialAnimation?: {
-    opacity?: number;
-    y?: number;
-    x?: number;
-  };
-  /**
-   * Animation when card is in view
-   * @default { opacity: 1, y: 0 }
-   */
-  animateInView?: {
-    opacity?: number;
-    y?: number;
-    x?: number;
-  };
-  /**
-   * Animation duration in seconds
-   * @default 0.3
-   */
-  animationDuration?: number;
-  /**
    * Show skeleton loading
    * @default false
    */
   showSkeleton?: boolean;
+  /**
+   * Custom class name for the card
+   */
+  className?: string;
 }
+
+type CardProps = BaseCardProps & React.HTMLAttributes<HTMLDivElement>;
 
 // Card component with forwardRef
 const Card = forwardRef<HTMLDivElement, CardProps>(({
@@ -71,7 +45,6 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
   size = 'md',
   hoverable = true,
   isLoading = false,
-  hoverAnimation = { scale: 1.02 },
   showSkeleton = false,
   className = '',
   ...props
@@ -81,7 +54,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
   
   // Define variant classes
   const variantClasses = {
-    elevated: 'bg-white dark:bg-gray-800 shadow-md hover:shadow-lg',
+    elevated: 'bg-white dark:bg-gray-800 shadow-md',
     outline: 'bg-transparent border border-gray-200 dark:border-gray-700',
     filled: 'bg-gray-50 dark:bg-gray-800/50',
   };
@@ -94,13 +67,13 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
   };
   
   // Combine all classes
-  const cardClasses = `
-    ${baseClasses} 
-    ${variantClasses[variant]} 
-    ${sizeClasses[size]} 
-    ${hoverable ? 'transition-all duration-200 hover:shadow-lg' : ''}
-    ${className}
-  `;
+  const cardClasses = [
+    baseClasses,
+    variantClasses[variant] || variantClasses.elevated,
+    sizeClasses[size] || sizeClasses.md,
+    hoverable ? 'hover:shadow-lg' : '',
+    className
+  ].filter(Boolean).join(' ');
   
   // Skeleton loading
   if (showSkeleton || isLoading) {
@@ -119,7 +92,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
   return (
     <div
       ref={ref}
-      className={`${cardClasses} animate-fade-in`}
+      className={cardClasses}
       {...props}
     >
       {children}
@@ -141,15 +114,23 @@ const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(({
   className = '',
   withDivider = true,
   ...props 
-}, ref) => (
-  <div 
-    ref={ref} 
-    className={`pb-4 ${withDivider ? 'border-b border-gray-100 dark:border-gray-700' : ''} ${className}`}
-    {...props}
-  >
-    {children}
-  </div>
-));
+}, ref) => {
+  const headerClasses = [
+    'pb-4',
+    withDivider ? 'border-b border-gray-100 dark:border-gray-700' : '',
+    className
+  ].filter(Boolean).join(' ');
+  
+  return (
+    <div 
+      ref={ref} 
+      className={headerClasses}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+});
 
 // Card Title component
 const CardTitle = forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(({ 
@@ -164,21 +145,6 @@ const CardTitle = forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadin
   >
     {children}
   </h3>
-));
-
-// Card Subtitle component
-const CardSubtitle = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(({ 
-  children, 
-  className = '',
-  ...props 
-}, ref) => (
-  <p 
-    ref={ref} 
-    className={`text-sm text-gray-500 dark:text-gray-400 ${className}`}
-    {...props}
-  >
-    {children}
-  </p>
 ));
 
 // Card Body component
@@ -215,16 +181,9 @@ const CardFooter = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
 Card.displayName = 'Card';
 CardHeader.displayName = 'CardHeader';
 CardTitle.displayName = 'CardTitle';
-CardSubtitle.displayName = 'CardSubtitle';
 CardBody.displayName = 'CardBody';
 CardFooter.displayName = 'CardFooter';
 
 // Export components
-export {
-  Card as default,
-  CardHeader,
-  CardTitle,
-  CardSubtitle,
-  CardBody,
-  CardFooter,
-};
+export default Card;
+export { CardHeader, CardTitle, CardBody, CardFooter };
