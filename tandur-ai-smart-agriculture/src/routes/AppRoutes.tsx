@@ -1,37 +1,17 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
-import type { ComponentType } from 'react';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
-// Type for dynamic import function
-type LazyComponent = () => Promise<{ default: ComponentType<any> }>;
+// Lazy load components
+const HomePage = lazy(() => import('../pages/HomePage'));
+const DashboardPage = lazy(() => import('../pages/DashboardPage'));
+const LoginPage = lazy(() => import('../pages/LoginPage'));
+const RegisterPage = lazy(() => import('../pages/RegisterPage'));
+const ThemeTestPage = lazy(() => import('../pages/ThemeTestPage'));
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
-// Lazy load pages with error boundary
-const lazyWithRetry = (componentImport: LazyComponent) =>
-  lazy(async () => {
-    try {
-      return await componentImport();
-    } catch (error) {
-      console.error('Error loading component:', error);
-      // Return a default component in case of error
-      return { default: () => (
-        <div className="p-4 text-red-600">
-          Error loading component. Please try again later.
-        </div>
-      )};
-    }
-  });
-
-// Lazy load pages for better performance
-const HomePage = lazyWithRetry(() => import('../pages/HomePage'));
-const DashboardPage = lazyWithRetry(() => import('../pages/DashboardPage'));
-const LoginPage = lazyWithRetry(() => import('../pages/LoginPage'));
-const RegisterPage = lazyWithRetry(() => import('../pages/RegisterPage'));
-const ThemeTestPage = lazyWithRetry(() => import('../pages/ThemeTestPage'));
-const NotFoundPage = lazyWithRetry(() => import('../pages/NotFoundPage'));
-
-// Import ProtectedRoute with dynamic import to avoid circular dependencies
-const ProtectedRoute = lazyWithRetry(() => import('../components/ProtectedRoute'));
+// Non-lazy import for ProtectedRoute to avoid type issues
+import ProtectedRoute from '../components/ProtectedRoute';
 
 // Fallback component for Suspense
 const Fallback = () => (
@@ -50,14 +30,11 @@ const AppRoutes = () => {
         <Route path="/theme-test" element={<ThemeTestPage />} />
         
         {/* Protected routes */}
-        <Route
-          path="/dashboard/*"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard/*" element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } />
         
         {/* 404 route */}
         <Route path="/404" element={<NotFoundPage />} />
