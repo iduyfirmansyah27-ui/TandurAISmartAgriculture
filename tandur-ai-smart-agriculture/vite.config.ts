@@ -32,12 +32,10 @@ export default defineConfig(({ mode }) => {
     // Script sources - strict by default
     'script-src': [
       "'self'",
-      // Required for React development
-      "'unsafe-inline'",
-      // Required for Webpack's HMR in development
-      !isProduction && "'unsafe-eval'",
-      // Nonce for inline scripts (if needed)
-      `'nonce-${nonce}'`,
+      // Required for React Refresh in development
+      !isProduction && "'unsafe-inline' 'unsafe-eval'",
+      // Nonce for production
+      isProduction && `'nonce-${nonce}'`,
       // Add any external scripts you need here
       // 'https://apis.google.com',
     ].filter(Boolean) as string[],
@@ -45,10 +43,13 @@ export default defineConfig(({ mode }) => {
     // Style sources
     'style-src': [
       "'self'",
-      "'unsafe-inline'", // Required for MUI and other CSS-in-JS libraries
+      // Required for CSS-in-JS in development
+      !isProduction && "'unsafe-inline'",
+      // Nonce for production
+      isProduction && `'nonce-${nonce}'`,
       // Add any external stylesheets here
       // 'https://fonts.googleapis.com',
-    ],
+    ].filter(Boolean) as string[],
     
     // Image sources
     'img-src': [
@@ -109,8 +110,21 @@ export default defineConfig(({ mode }) => {
     // Sandbox (if using iframes)
     // 'sandbox': ['allow-forms', 'allow-scripts', 'allow-same-origin'],
     
-    // Report violations to this URL (optional)
-    // 'report-uri': '/csp-violation-report-endpoint',
+    // Report violations to our reporting endpoint
+    'report-uri': isProduction ? ['/api/csp-report'] : [],
+    'report-to': isProduction ? ['csp-endpoint'] : [],
+    
+    // Add reporting endpoint for browsers that support report-to
+    ...(isProduction ? {
+      'report-to': [{
+        key: 'csp-endpoint',
+        max_age: 10886400, // 30 days in seconds
+        endpoints: [{
+          url: '/api/csp-report',
+        }],
+        include_subdomains: true,
+      }],
+    } : {}),
   };
 
   // Convert directives to CSP header string
@@ -120,7 +134,15 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      react(),
+      react({
+        // Ensure Fast Refresh works with CSP
+        jsxRuntime: 'automatic',
+        babel: {
+          plugins: [
+            // Add any required Babel plugins here
+          ],
+        },
+      }),
     ],
     resolve: {
       alias: {
@@ -137,9 +159,15 @@ export default defineConfig(({ mode }) => {
         'X-Frame-Options': 'DENY',
         'X-XSS-Protection': '1; mode=block',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), fullscreen=()',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
         'X-Permitted-Cross-Domain-Policies': 'none',
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Resource-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+        'X-DNS-Prefetch-Control': 'on',
+        'Expect-CT': 'enforce, max-age=30',
+        'Feature-Policy': "geolocation 'none'; microphone 'none'; camera 'none'",
       },
       // Enable CORS for development
       cors: true,
@@ -155,18 +183,27 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      // Ensure build assets include the nonce
+      // Production optimizations
+      sourcemap: isProduction ? 'hidden' : true,
+      minify: isProduction ? 'terser' : 'esbuild',
+      terserOptions: isProduction ? {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      } : undefined,
       rollupOptions: {
         output: {
-          entryFileNames: `[name].${nonce}.js`,
-          chunkFileNames: `[name].${nonce}.[hash].js`,
-          assetFileNames: `[name].${nonce}.[hash].[ext]`,
+          entryFileNames: `[name].${isProduction ? nonce : '[name]'}.js`,
+          chunkFileNames: `[name].${isProduction ? nonce + '.' : ''}[hash].js`,
+          assetFileNames: `[name].${isProduction ? nonce + '.' : ''}[hash].[ext]`,
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            vendor: ['react-router-dom', 'axios'],
+          },
         },
       },
-      // Minify for production
-      minify: isProduction ? 'esbuild' : false,
-      // Generate source maps for better debugging
-      sourcemap: !isProduction,
+      chunkSizeWarningLimit: 1000, // in kB
     },
   };
 });
