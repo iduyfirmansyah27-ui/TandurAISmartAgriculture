@@ -24,6 +24,70 @@ const adminAuth = basicAuth({
   realm: 'Admin Area',
 });
 
+// Generate nonce for CSP
+const generateNonce = () => {
+  return require('crypto').randomBytes(16).toString('base64');
+};
+
+// Middleware to set security headers including CSP
+app.use((req, res, next) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const nonce = generateNonce();
+  
+  // Define CSP directives
+  const cspDirectives = {
+    'default-src': ["'self'"],
+    'script-src': [
+      "'self'",
+      ...(isProduction ? [] : ["'unsafe-inline'", "'unsafe-eval'"]),
+      ...(isProduction ? [`'nonce-${nonce}'`] : []),
+    ],
+    'style-src': [
+      "'self'",
+      ...(isProduction ? [] : ["'unsafe-inline'"]),
+      ...(isProduction ? [`'nonce-${nonce}'`] : []),
+    ],
+    'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+    'font-src': ["'self'", 'data:', 'https:'],
+    'connect-src': [
+      "'self'",
+      ...(isProduction ? [] : [
+        'ws://localhost:3000',
+        'ws://localhost:3001',
+        'http://localhost:3000',
+      ]),
+      ...(isProduction ? [
+        'https://your-api-domain.com',
+      ] : []),
+    ],
+    'media-src': ["'self'", 'data:', 'blob:'],
+    'object-src': ["'none'"],
+    'frame-src': ["'self'"],
+    'worker-src': ["'self'"],
+    'form-action': ["'self'"],
+  };
+
+  // Convert CSP directives to header string
+  const cspHeader = Object.entries(cspDirectives)
+    .map(([key, values]) => `${key} ${values.join(' ')}`)
+    .join('; ');
+
+  // Set security headers
+  res.set({
+    'Content-Security-Policy': cspHeader,
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+  });
+
+  // Add nonce to response locals for use in templates if needed
+  res.locals.nonce = nonce;
+  
+  next();
+});
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
