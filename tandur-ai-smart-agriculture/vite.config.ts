@@ -20,37 +20,27 @@ const generateNonce = () => {
   return require('crypto').randomBytes(16).toString('hex');
 };
 
-// Ensure proper environment detection
-const isProduction = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === undefined && process.env.NODE_ENV !== 'development';
-
 export default defineConfig(({ mode }) => {
-  // Use the environment variable if set, otherwise fall back to mode
-  const effectiveIsProduction = isProduction || mode === 'production';
-  const nonce = generateNonce();
+  // Cek apakah mode production
+  const isProduction = mode === 'production';
   
-  // Define CSP directives with enhanced security
+  // Generate nonce hanya untuk production
+  const nonce = isProduction ? generateNonce() : '';
+  
+  // Atur CSP directives
   const cspDirectives = {
-    // Default fallback for all unset directives
     'default-src': ["'self'"],
-    
-    // Script sources - strict by default
     'script-src': [
       "'self'",
-      // Required for React Refresh and HMR in development
-      ...(effectiveIsProduction ? [] : ["'unsafe-inline'", "'unsafe-eval'"]),
-      // Nonce for production
-      ...(effectiveIsProduction ? [`'nonce-${nonce}'`] : []),
+      // Di development, izinkan semua untuk memudahkan pengembangan
+      ...(isProduction ? [] : ["'unsafe-inline'", "'unsafe-eval'"])
       // Add any external scripts you need here
       // 'https://apis.google.com',
     ],
     
-    // Style sources
     'style-src': [
       "'self'",
-      // Required for CSS-in-JS in development
-      ...(effectiveIsProduction ? [] : ["'unsafe-inline'"]),
-      // Nonce for production
-      ...(effectiveIsProduction ? [`'nonce-${nonce}'`] : []),
+      ...(isProduction ? [] : ["'unsafe-inline'"])
       // Add any external stylesheets here
       // 'https://fonts.googleapis.com',
     ],
@@ -72,17 +62,14 @@ export default defineConfig(({ mode }) => {
       // 'https://fonts.gstatic.com',
     ],
     
-    // Connect sources (XHR, WebSockets, etc.)
     'connect-src': [
       "'self'",
-      // Development server and HMR
-      ...(effectiveIsProduction ? [] : [
+      ...(isProduction ? [] : [
         'ws://localhost:3000',
         'ws://localhost:3001',
         'http://localhost:3000',
       ]),
-      // API endpoints
-      ...(effectiveIsProduction ? [
+      ...(isProduction ? [
         'https://your-api-domain.com',
       ] : []),
     ],

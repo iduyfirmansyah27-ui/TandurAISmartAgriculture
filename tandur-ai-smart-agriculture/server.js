@@ -24,69 +24,52 @@ const adminAuth = basicAuth({
   realm: 'Admin Area',
 });
 
-// Generate nonce for CSP
-const generateNonce = () => {
-  return require('crypto').randomBytes(16).toString('base64');
-};
-
-// Middleware to set security headers including CSP
-app.use((req, res, next) => {
-  const isProduction = process.env.NODE_ENV === 'production';
-  const nonce = generateNonce();
-  
-  // Define CSP directives
-  const cspDirectives = {
-    'default-src': ["'self'"],
-    'script-src': [
-      "'self'",
-      ...(isProduction ? [] : ["'unsafe-inline'", "'unsafe-eval'"]),
-      ...(isProduction ? [`'nonce-${nonce}'`] : []),
-    ],
-    'style-src': [
-      "'self'",
-      ...(isProduction ? [] : ["'unsafe-inline'"]),
-      ...(isProduction ? [`'nonce-${nonce}'`] : []),
-    ],
-    'img-src': ["'self'", 'data:', 'blob:', 'https:'],
-    'font-src': ["'self'", 'data:', 'https:'],
-    'connect-src': [
-      "'self'",
-      ...(isProduction ? [] : [
-        'ws://localhost:3000',
-        'ws://localhost:3001',
-        'http://localhost:3000',
-      ]),
-      ...(isProduction ? [
-        'https://your-api-domain.com',
-      ] : []),
-    ],
-    'media-src': ["'self'", 'data:', 'blob:'],
-    'object-src': ["'none'"],
-    'frame-src': ["'self'"],
-    'worker-src': ["'self'"],
-    'form-action': ["'self'"],
+// Middleware untuk development
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    // Izinkan semua di development untuk memudahkan pengembangan
+    res.set({
+      'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: ws: http: https:;",
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+    });
+    next();
+  });
+} else {
+  // Middleware untuk production
+  const generateNonce = () => {
+    return require('crypto').randomBytes(16).toString('base64');
   };
 
-  // Convert CSP directives to header string
-  const cspHeader = Object.entries(cspDirectives)
-    .map(([key, values]) => `${key} ${values.join(' ')}`)
-    .join('; ');
+  app.use((req, res, next) => {
+    const nonce = generateNonce();
+    
+    // Set CSP header untuk production
+    res.set({
+      'Content-Security-Policy': `
+        default-src 'self';
+        script-src 'self' 'nonce-${nonce}';
+        style-src 'self' 'nonce-${nonce}';
+        img-src 'self' data: https:;
+        font-src 'self' data: https:;
+        connect-src 'self' https://your-api-domain.com;
+        media-src 'self' data: blob:;
+        object-src 'none';
+        frame-src 'self';
+        worker-src 'self';
+        form-action 'self';
+      `.replace(/\s+/g, ' ').trim(),
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    });
 
-  // Set security headers
-  res.set({
-    'Content-Security-Policy': cspHeader,
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    res.locals.nonce = nonce;
+    next();
   });
-
-  // Add nonce to response locals for use in templates if needed
-  res.locals.nonce = nonce;
-  
-  next();
-});
+}
 
 // Middleware
 app.use(express.json());
@@ -142,34 +125,51 @@ if (process.env.NODE_ENV !== 'production') {
   app.listen(HTTPS_PORT, () => {
     console.log(`Development server running on http://localhost:${HTTPS_PORT}`);
     console.log('\x1b[33m%s\x1b[0m', 'WARNING: Running in development mode without HTTPS!');
-    console.log('Generate certificates and set NODE_ENV=production for HTTPS.\n');
+    console.log('For production with HTTPS, set NODE_ENV=production and ensure certificates are available.\n');
   });
 } else {
-  // In production, use HTTPS
-  try {
-    const privateKey = fs.readFileSync('certs/localhost-key.pem', 'utf8');
-    const certificate = fs.readFileSync('certs/localhost.pem', 'utf8');
-    const credentials = { key: privateKey, cert: certificate };
-    
-    const httpsServer = https.createServer(credentials, app);
-    
-    httpsServer.listen(HTTPS_PORT, () => {
-      console.log(`HTTPS server running on https://localhost:${HTTPS_PORT}`);
-      console.log('Admin dashboard: https://localhost:3443/admin/csp-violations');
-      console.log('Username:', ADMIN_USERNAME);
-      console.log('Password:', '********');
-    });
-  } catch (error) {
-    console.error('Failed to start HTTPS server:', error.message);
-    console.log('Falling back to HTTP. Run `node scripts/generate-cert.js` to generate certificates.');
-    
-    // Fallback to HTTP if HTTPS setup fails
-    app.listen(HTTPS_PORT, () => {
-      console.log(`HTTP server running on http://localhost:${HTTPS_PORT} (HTTPS failed to start)`);
-    });
+  // In production, try to use HTTPS if certificates exist, otherwise fall back to HTTP
+  const keyPath = 'certs/localhost-key.pem';
+  const certPath = 'certs/localhost.pem';
+  
+  if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+    try {
+      const privateKey = fs.readFileSync(keyPath, 'utf8');
+      const certificate = fs.readFileSync(certPath, 'utf8');
+      const credentials = { key: privateKey, cert: certificate };
+      
+      const httpsServer = https.createServer(credentials, app);
+      
+      httpsServer.listen(HTTPS_PORT, () => {
+        console.log(`HTTPS server running on https://localhost:${HTTPS_PORT}`);
+        console.log('Admin dashboard: https://localhost:3443/admin/csp-violations');
+        console.log('Username:', ADMIN_USERNAME);
+        console.log('Password:', '********');
+      });
+    } catch (error) {
+      console.error('Failed to start HTTPS server:', error.message);
+      startHttpServer();
+    }
+  } else {
+    console.log('HTTPS certificates not found. Starting HTTP server...');
+    startHttpServer();
   }
 }
 
+function startHttpServer() {
+  // Create HTTP server for production without HTTPS
+  const httpServer = http.createServer(app);
+  
+  httpServer.listen(HTTP_PORT, () => {
+    console.log(`HTTP server running on http://localhost:${HTTP_PORT}`);
+    console.log('Admin dashboard: http://localhost:3000/admin/csp-violations');
+    console.log('Username:', ADMIN_USERNAME);
+    console.log('Password:', '********');
+    console.log('\x1b[33m%s\x1b[0m', 'WARNING: Running in production without HTTPS!');
+    console.log('For production use, please set up HTTPS with valid certificates.');
+  });
+}
+    
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Promise Rejection:', err);});

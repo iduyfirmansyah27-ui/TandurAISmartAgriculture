@@ -1,19 +1,23 @@
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import { existsSync, mkdirSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-const certDir = path.join(__dirname, '..', 'certs');
-const keyPath = path.join(certDir, 'localhost-key.pem');
-const certPath = path.join(certDir, 'localhost.pem');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const certDir = join(__dirname, '..', 'certs');
+const keyPath = join(certDir, 'localhost-key.pem');
+const certPath = join(certDir, 'localhost.pem');
 
 // Create certs directory if it doesn't exist
-if (!fs.existsSync(certDir)) {
-  fs.mkdirSync(certDir, { recursive: true });
+if (!existsSync(certDir)) {
+  mkdirSync(certDir, { recursive: true });
   console.log('Created certs directory');
 }
 
 // Check if certificates already exist
-if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+if (!existsSync(keyPath) || !existsSync(certPath)) {
   console.log('Generating self-signed certificate...');
   
   // Generate private key and certificate
