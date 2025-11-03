@@ -8,6 +8,7 @@ const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const LoginPage = lazy(() => import('../pages/LoginPage'));
 const RegisterPage = lazy(() => import('../pages/RegisterPage'));
 const ThemeTestPage = lazy(() => import('../pages/ThemeTestPage'));
+const SecurityTestPage = lazy(() => import('../pages/SecurityTestPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
 // Non-lazy import for ProtectedRoute to avoid type issues
@@ -28,6 +29,7 @@ const AppRoutes = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/theme-test" element={<ThemeTestPage />} />
+        <Route path="/security-test" element={<SecurityTestPage />} />
         
         {/* Protected routes */}
         <Route path="/dashboard/*" element={
