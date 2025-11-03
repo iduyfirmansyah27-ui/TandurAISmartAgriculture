@@ -3,66 +3,66 @@ import { FaSpinner } from 'react-icons/fa';
 import type { ButtonHTMLAttributes } from 'react';
 import type { IconType } from 'react-icons';
 
-// Definisikan tipe untuk ukuran tombol
-type ButtonSize = 'sm' | 'md' | 'lg';
+// Button size type
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
-// Definisikan tipe untuk varian tombol
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
+// Button variant type
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
 
-// Definisikan props untuk komponen Button
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+// Button props interface
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /**
-   * Ukuran tombol
+   * Button size
    * @default 'md'
    */
   size?: ButtonSize;
   /**
-   * Varian tampilan tombol
+   * Button variant
    * @default 'primary'
    */
   variant?: ButtonVariant;
   /**
-   * Menampilkan indikator loading
+   * Show loading state
    * @default false
    */
   isLoading?: boolean;
   /**
-   * Menampilkan tombol dengan lebar penuh
+   * Make button full width
    * @default false
    */
   isFullWidth?: boolean;
   /**
-   * Ikon kiri
+   * Left icon component
    */
   leftIcon?: IconType;
   /**
-   * Ikon kanan
+   * Right icon component
    */
   rightIcon?: IconType;
   /**
-   * Label aksesibilitas untuk loading state
-   * @default 'Memuat...'
+   * Loading state accessibility text
+   * @default 'Loading...'
    */
   loadingText?: string;
 }
 
-// Ukuran tombol
+// Size styles
 const sizeStyles = {
-  sm: 'py-1.5 px-3 text-xs rounded',
-  md: 'py-2 px-4 text-sm rounded-md',
-  lg: 'py-3 px-6 text-base rounded-lg',
+  sm: 'px-3 py-1.5 text-sm rounded-md',
+  md: 'px-4 py-2 text-base rounded-lg',
+  lg: 'px-6 py-3 text-lg rounded-xl',
 };
 
-// Varian tombol
+// Button variants
 export const buttonVariants = {
-  primary: 'bg-primary-600 hover:bg-primary-700 text-white border-transparent',
-  secondary: 'bg-secondary-600 hover:bg-secondary-700 text-white border-transparent',
-  outline: 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-primary-600 dark:text-primary-400 border border-gray-300 dark:border-gray-600',
-  ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 border-transparent',
-  link: 'bg-transparent hover:underline text-primary-600 dark:text-primary-400 p-0 border-0',
+  primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm',
+  secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 shadow-sm',
+  outline: 'bg-transparent border-2 border-gray-300 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 focus:ring-2 focus:ring-primary-500',
+  ghost: 'bg-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 focus:ring-2 focus:ring-gray-300',
+  link: 'bg-transparent text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 hover:underline p-0',
 };
 
-// Komponen Button dengan forwardRef untuk mendukung ref
+// Button component with forwardRef to support ref forwarding
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
   children,
   size = 'md',
