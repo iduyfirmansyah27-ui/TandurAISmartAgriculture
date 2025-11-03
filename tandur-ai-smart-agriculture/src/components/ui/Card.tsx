@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { cn } from '../../lib/utils';
 
 // Define types for Card props
 export type CardVariant = 'elevated' | 'outline' | 'filled';
@@ -30,16 +31,12 @@ interface BaseCardProps {
    * @default false
    */
   showSkeleton?: boolean;
-  /**
-   * Custom class name for the card
-   */
-  className?: string;
 }
 
 type CardProps = BaseCardProps & React.HTMLAttributes<HTMLDivElement>;
 
 // Card component with forwardRef
-const Card = forwardRef<HTMLDivElement, CardProps>(({
+export const Card = forwardRef<HTMLDivElement, CardProps>(({
   children,
   variant = 'elevated',
   size = 'md',
@@ -49,37 +46,48 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
   className = '',
   ...props
 }, ref) => {
-  // Define base classes
-  const baseClasses = 'rounded-lg transition-all duration-200';
-  
-  // Define variant classes
-  const variantClasses = {
-    elevated: 'bg-white dark:bg-gray-800 shadow-md',
-    outline: 'bg-transparent border border-gray-200 dark:border-gray-700',
-    filled: 'bg-gray-50 dark:bg-gray-800/50',
-  };
-  
-  // Define size classes
-  const sizeClasses = {
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
-  };
-  
-  // Combine all classes
-  const cardClasses = [
-    baseClasses,
-    variantClasses[variant] || variantClasses.elevated,
-    sizeClasses[size] || sizeClasses.md,
-    hoverable ? 'hover:shadow-lg' : '',
+  // Define base classes with improved styling
+  const baseClasses = cn(
+    // Base styles
+    'relative overflow-hidden transition-all duration-200',
+    // Rounded corners
+    'rounded-xl',
+    // Hover and focus states
+    hoverable && [
+      'hover:shadow-lg dark:hover:shadow-xl',
+      'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900',
+    ],
+    // Dark mode support
+    'dark:border-gray-700',
+    // Size variants
+    {
+      'p-3': size === 'sm',
+      'p-4': size === 'md',
+      'p-6': size === 'lg',
+    },
+    // Visual variants
+    {
+      'bg-white dark:bg-gray-800 shadow-sm': variant === 'elevated',
+      'bg-transparent border border-gray-200 dark:border-gray-700': variant === 'outline',
+      'bg-gray-50 dark:bg-gray-800/50': variant === 'filled',
+    },
+    // Additional classes from props
     className
-  ].filter(Boolean).join(' ');
-  
-  // Skeleton loading
-  if (showSkeleton || isLoading) {
+  );
+
+  // Skeleton loading effect
+  if (isLoading || showSkeleton) {
     return (
-      <div className={`${cardClasses} overflow-hidden`} ref={ref}>
-        <div className="animate-pulse space-y-4">
+      <div
+        ref={ref}
+        className={cn(
+          baseClasses,
+          'animate-pulse bg-gray-100 dark:bg-gray-700',
+          size === 'sm' ? 'h-32' : size === 'lg' ? 'h-48' : 'h-40',
+          className
+        )}
+        {...props}
+      />
           <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
